@@ -8,14 +8,25 @@ diff --git a/madgraph/various/cluster.py b/madgraph/various/cluster.py
 +        text += "source /cvmfs/cms.cern.ch/cmsset_default.sh;eval `scram runtime -sh`;"
          if not os.path.isabs(prog):
              text += "./%s" % prog
-@@ -1281,6 +1282,9 @@
--        for line in status.stdout:
-+        for line in (status.stdout + status.stderr):
-             line = line.strip()
-             if 'cannot connect to server' in line or 'cannot read reply' in line:
-                 raise ClusterManagmentError, 'server disconnected'
-             if 'Unknown' in line:
-                 return 'F'
-+            elif 'Invalid credential' in line:       # sometimes qstat simply fails, wait a bit and try again
+@@ -1276,3 +1277,3 @@
+         """ control the status of a single job with it's cluster id """
+-        cmd = 'qstat '+str(id)
++        cmd = 'cat /user/$USER/temp/.qstat | grep '+str(id)
+         status = misc.Popen([cmd], shell=True, stdout=subprocess.PIPE,
+@@ -1289,2 +1290,3 @@
+             else:
+-                jobstatus=""
 +                time.sleep(10)
 +                return self.control_one_job(id)
+@@ -1304,2 +1306,2 @@
+-        cmd = "qstat"
++        cmd = "cat /user/$USER/temp/.qstat | grep $USER"
+-        status = misc.Popen([cmd], stdout=subprocess.PIPE)
++        status = misc.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+@@ -1313,2 +1315,6 @@
+             if 'cannot connect to server' in line or 'cannot read reply' in line:
+                 raise ClusterManagmentError, 'server disconnected'
++            if 'Invalid credential' in line:
++                logger.info('Invalid credential --> sleeping 10s and trying again') 
++                time.sleep(10)
++                return self.control(me_dir)
