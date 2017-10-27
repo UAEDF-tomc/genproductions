@@ -55,6 +55,7 @@ if [ -z "$PRODHOME" ]; then
   PRODHOME=`pwd`
 fi 
 
+CMSSW_BASE=
 if [ ! -z ${CMSSW_BASE} ]; then
   echo "Error: This script must be run in a clean environment as it sets up CMSSW itself.  You already have a CMSSW environment set up for ${CMSSW_VERSION}."
   echo "Please try again from a clean shell."
@@ -238,13 +239,13 @@ if [ ! -d ${AFS_GEN_FOLDER}/${name}_gridpack ]; then
 	  long_wait=300
 	  short_wait=120
       else
-	  n_retries=3
-	  long_wait=60
-	  short_wait=30
+	  n_retries=100
+	  long_wait=500
+	  short_wait=150
       fi
       echo "set cluster_status_update $long_wait $short_wait" >> mgconfigscript
       echo "set cluster_nb_retry $n_retries" >> mgconfigscript
-      echo "set cluster_retry_wait 300" >> mgconfigscript
+      echo "set cluster_retry_wait 2000" >> mgconfigscript
       #echo "set cluster_local_path `${LHAPDFCONFIG} --datadir`" >> mgconfigscript 
       if [[ ! "$RUNHOME" =~ ^/afs/.* ]]; then
           echo "local path is not an afs path, batch jobs will use worker node scratch space instead of afs"
@@ -358,6 +359,7 @@ if [ ! -d ${AFS_GEN_FOLDER}/${name}_gridpack ]; then
     echo "cluster_queue = localgrid@cream02" >> ./$MGBASEDIRORIG/input/mg5_configuration.txt
     mkdir -p /user/$USER/temp
     echo "cluster_temp_path = /user/$USER/temp" >> ./$MGBASEDIRORIG/input/mg5_configuration.txt
+    export TMPDIR=/user/$USER/temp
   else
     echo "cluster_queue = $queue" >> ./$MGBASEDIRORIG/input/mg5_configuration.txt
   fi
