@@ -1,4 +1,3 @@
-#PBS -W x=NACCESSPOLICY:SINGLEJOB
 #!/bin/bash
 cd /user/tomc/heavyNeutrino/CMSSW_8_0_28_patch1/src/
 source $VO_CMS_SW_DIR/cmsset_default.sh
