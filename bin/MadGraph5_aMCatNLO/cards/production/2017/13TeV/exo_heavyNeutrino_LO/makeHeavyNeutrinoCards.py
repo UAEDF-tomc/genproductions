@@ -8,19 +8,20 @@ def replaceInCard(card, replacements):
 
 #
 # Create heavyNeutrino cards for given parameters
-# Returns baseName, which can be used to find the cards i.e. as baseName/baseName_*.dat
-# mass       - mass of the heavy neutrino particle
-# coupling   - mixing parameter between the heavy neutrino and lepton
-# flavours   - could be e, mu, tau, 2l (e+mu), 3l (e+mu+tau)
-# onshell    - if true, MadSpin onshell options is used, otherwise 'none'
-# isPre2017  - use older pdf's as used in Moriond17 campaign
-# type       - trilepton (n1 --> llnu) or lljj (n1 --> ljj)
+# Returns baseName (useful when this function is called from other scripts) which can be used to find the cards i.e. as baseName/baseName_*.dat
+# mass            - mass of the heavy neutrino particle
+# coupling        - mixing parameter between the heavy neutrino and lepton
+# flavours        - could be e, mu, tau, 2l (e+mu), 3l (e+mu+tau)
+# isPre2017       - use older pdf's as used in Moriond17 campaign
+# type            - trilepton (n1 --> llnu) or lljj (n1 --> ljj)
+# oneFlavourDecay - also limit the decay to the specified flavor
+# signFirstFlavor - specify the sign of the first lepton
 #
-def makeHeavyNeutrinoCards(mass, coupling, flavours, onshell, isPre2017, type, oneFlavourDecay=False, signFirstFlavor=0):
+def makeHeavyNeutrinoCards(mass, coupling, flavours, isPre2017=False, type='trilepton', oneFlavourDecay=False, signFirstFlavor=0):
   if signFirstFlavor==1:  sign = 'Plus'
   if signFirstFlavor==-1: sign = 'Min'
   else:                   sign = ''
-  baseName = 'HeavyNeutrino_' + type + '_M-' + str(mass) + '_V-' + str(coupling) + '_' + flavours + ('_onshell' if onshell else '') + ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM' + sign + '_LO'
+  baseName = 'HeavyNeutrino_' + type + '_M-' + str(mass) + '_V-' + str(coupling) + '_' + flavours + ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM' + sign + '_LO'
 
   try:    os.makedirs(baseName)
   except: pass
@@ -32,9 +33,8 @@ def makeHeavyNeutrinoCards(mass, coupling, flavours, onshell, isPre2017, type, o
   replacements = [('MASS',     str(mass)),
                   ('COUPLING', str(coupling)),
                   ('FLAVOURS', flavours),
-                  ('SPINMODE', 'onshell' if onshell else 'none'),
                   ('TYPE',     type),
-                  ('EXTRA',    ('_onshell' if onshell else '') +  ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM'+sign)]
+                  ('EXTRA',    ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM'+sign)]
 
   if flavours == '2l':    replacements += [('l+ = e+ mu+ ta+', 'l+ = e+ mu+'), ('l- = e- mu- ta-', 'l- = e- mu-')]
   elif flavours == 'e':   replacements += [('l+ = e+ mu+ ta+', 'l+ = e+'),     ('l- = e- mu- ta-', 'l- = e-')]
@@ -72,11 +72,24 @@ def makeHeavyNeutrinoCards(mass, coupling, flavours, onshell, isPre2017, type, o
 # Use Example:
 #
 if __name__ == "__main__":
-  argsList = [
-    (1,     0.11557,     'e',   True,    False, 'trilepton'),
-    (1,     0.11505,     'mu',  True,    False, 'trilepton'),
-    (1,     0.11505,     'mu',  True,    True,  'lljj'),
-    (1,     0.11505,     'mu',  True,    True,  'trilepton')
-  ]
+  import math
+  def intOrFloat(str):
+    try:    return int(str)
+    except: return float(str)
 
-  for args in argsList: makeHeavyNeutrinoCards(*args)
+  # Create grid in mass and couplings
+  for mass in [2, 5, 8]:
+    v2s       = [5e-4, 3e-4, 2e-4, 1e-4, 7e-5, 5e-5, 3e-5, 2e-5, 1e-5, 8e-6, 6e-6]
+    if   intOrFloat(mass) > 8: v2s = v2s[7:]
+    elif intOrFloat(mass) > 7: v2s = v2s[6:]
+    elif intOrFloat(mass) > 6: v2s = v2s[5:]
+    elif intOrFloat(mass) > 5: v2s = v2s[4:]
+    elif intOrFloat(mass) > 4: v2s = v2s[3:]
+    elif intOrFloat(mass) > 3: v2s = v2s[2:]
+    elif intOrFloat(mass) > 2: v2s = v2s[1:]
+    couplings = [math.sqrt(v2) for v2 in v2s]
+
+    for coupling in couplings:
+      for flavour in ['e', 'mu', 'tau']:
+        makeHeavyNeutrinoCards(mass, coupling, flavour, isPre2017=False, type='trilepton')   # Note: for Moriond17 samples should put isPre2017 to True
+        makeHeavyNeutrinoCards(mass, coupling, flavour, isPre2017=False, type='lljj')
