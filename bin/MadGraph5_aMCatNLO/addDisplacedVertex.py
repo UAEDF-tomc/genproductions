@@ -18,8 +18,8 @@ with open(lheFile + 'temp', 'w') as new:
   with open(lheFile) as old:
     for l in old:
       tof = '%.4E' % float(c*random.expovariate(width/hbar))
-      if '9900012' in l: new.write(l.replace('0.0000e+00 0.0000e+00', tof + ' 0.0000e+00')) # modifying ctau to 10mm
-      else:              new.write(l)
+      if '9900012' in l or '9990012' in l: new.write(l.replace('0.0000e+00 0.0000e+00', tof + ' 0.0000e+00')) # modifying ctau to 10mm
+      else:                           new.write(l)
 
 from shutil import move
 move(lheFile + 'temp', lheFile)

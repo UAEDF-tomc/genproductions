@@ -17,12 +17,16 @@ def replaceInCard(card, replacements):
 # oneFlavourDecay - also limit the decay to the specified flavor
 # signFirstFlavor - specify the sign of the first lepton
 # noZ             - avoid diagrams containing Z
+# Dirac           - use the Dirac model instead of Majorana
 #
-def makeHeavyNeutrinoCards(mass, coupling, flavours, isPre2017=False, type='trilepton', oneFlavourDecay=False, signFirstFlavor=0, noZ=False):
-  if signFirstFlavor==1:  sign = 'Plus'
-  if signFirstFlavor==-1: sign = 'Min'
+def makeHeavyNeutrinoCards(mass, coupling, flavours, isPre2017=False, type='trilepton', oneFlavourDecay=False, signFirstFlavor=0, noZ=False, dirac=False):
+  if signFirstFlavor==1:  sign = '_l1Plus'
+  if signFirstFlavor==-1: sign = '_l1Min'
   else:                   sign = ''
-  baseName = 'HeavyNeutrino_' + type + '_M-' + str(mass) + '_V-' + str(coupling) + '_' + flavours + ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_noZ' if noZ else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM' + sign + '_LO'
+
+  extraOpt =  ('_Dirac' if dirac else '') + ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_noZ' if noZ else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM' + sign
+  baseName = 'HeavyNeutrino_' + type + '_M-' + str(mass) + '_V-' + str(coupling) + '_' + flavours + extraOpt + '_LO'
+  model    = 'SM_HeavyN_Dirac_CKM_Masses_LO' if dirac else 'SM_HeavyN_AllMassive_LO'
 
   try:    os.makedirs(baseName)
   except: pass
@@ -35,7 +39,10 @@ def makeHeavyNeutrinoCards(mass, coupling, flavours, isPre2017=False, type='tril
                   ('COUPLING', str(coupling)),
                   ('FLAVOURS', flavours),
                   ('TYPE',     type),
-                  ('EXTRA',    ('_oneFlavorDecay' if oneFlavourDecay else '') + ('_noZ' if noZ else '') + ('_pre2017' if isPre2017 else '') + '_massiveAndCKM'+sign)]
+                  ('MODEL',    model),
+                  ('PDGID',    '9990012' if dirac else '9900012'),
+                  ('EXTRA',    extraOpt)]
+
 
   if flavours == '2l':    replacements += [('l+ = e+ mu+ ta+', 'l+ = e+ mu+'), ('l- = e- mu- ta-', 'l- = e- mu-')]
   elif flavours == 'e':   replacements += [('l+ = e+ mu+ ta+', 'l+ = e+'),     ('l- = e- mu- ta-', 'l- = e-')]

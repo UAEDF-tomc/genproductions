@@ -11,7 +11,11 @@ cp $1 temp_$gridpack/$gridpack
 cd temp_$gridpack
 tar -xaf $gridpack
 cp $home/addDisplacedVertex.py .
-width=$(awk '/DECAY  9900012/{print $NF}' ./process/madevent/Cards/param_card.dat)   # LO
+if [[ $gridpack == *"Dirac"* ]]; then
+  width=$(awk '/DECAY  9990012/{print $NF}' ./process/madevent/Cards/param_card.dat)   # LO
+else
+  width=$(awk '/DECAY  9900012/{print $NF}' ./process/madevent/Cards/param_card.dat)   # LO
+fi
 echo "Adapting gridpack $gridpack to add displaced vertex based on width $width"
 sed -i "s/WIDTH/$width/g" addDisplacedVertex.py
 sed -i 's#exit 0#./addDisplacedVertex.py cmsgrid_final.lhe\nexit 0#g' runcmsgrid.sh
