@@ -5,11 +5,11 @@
 #
 
 import sys, os, fnmatch, shutil, math, numpy, time
-type, mass, couplings, flavor = sys.argv[1:]
+type, mass, couplings, flavor, neutrinoType, gridpackType = sys.argv[1:]
 queue = 'cream02'
 #queue = 'local'
-dirac = False 
-pre2017 = True 
+dirac = (neutrinoType=='dirac')
+pre2017 = (gridpackType=='pre2017')
 copyToOfficialDir = True
 
 path = './cards/production/2017/13TeV/exo_heavyNeutrino_LO/'
@@ -34,14 +34,14 @@ def findGridpack(dir, baseName):
   return None
 
 def copyToOfficial(gridpack):
-  dest = '/user/' + os.environ['USER'] + '/public/production/official2/gridpacks' + ('Pre2017' if pre2017 else '') + '/' + gridpack
+  dest = '/user/' + os.environ['USER'] + '/public/production/official-2l2j/gridpacks' + ('Pre2017' if pre2017 else '') + '/' + gridpack
   try:    os.makedirs(os.path.dirname(dest))
   except: pass
-  shutil.copyfile('/user/' + os.environ['USER'] + '/public/production/gridpacks2/displaced/' + gridpack, dest)
+  shutil.copyfile('/user/' + os.environ['USER'] + '/public/production/gridpacks/displaced/' + gridpack, dest)
 
 def createGridpack(path, mass, coupling, flavor, isPre2017, type, noZ):
   baseName = createCards(path, mass, coupling, flavor, isPre2017, type, noZ)
-  gridpack = findGridpack('/user/tomc/public/production/gridpacks2/displaced', baseName)
+  gridpack = findGridpack('/user/tomc/public/production/gridpacks/displaced', baseName)
   if gridpack:
     print gridpack + ' already exist, skipping'
     if copyToOfficialDir: copyToOfficial(gridpack)
@@ -50,7 +50,7 @@ def createGridpack(path, mass, coupling, flavor, isPre2017, type, noZ):
     print 'Creating ' + baseName
   gridpack = findGridpack('.', baseName)
   if gridpack: return gridpack
-  os.system('./gridpack_generation.sh ' + baseName + ' ' + path + '/' + baseName + ' ' + queue)
+  os.system('CMSSW_BASE=;./gridpack_generation.sh ' + baseName + ' ' + path + '/' + baseName + ' ' + queue)
   time.sleep(10)
   gridpack = findGridpack('.', baseName)
   if gridpack: shutil.rmtree(gridpack.split('_slc')[0])
@@ -65,13 +65,13 @@ if couplings=='all':
     elif intOrFloat(mass) == 5:  vs  = [9.04e-3]
     elif intOrFloat(mass) == 10: vs  = [1.52e-3]
   elif dirac:
-    if intOrFloat(mass) == 10:   v2s = [1.15e-6]
-    elif intOrFloat(mass) == 8:  v2s = [4.59e-6]
-    elif intOrFloat(mass) == 6:  v2s = [8.20e-6]
-    elif intOrFloat(mass) == 5:  v2s = [4.23e-6]
-    elif intOrFloat(mass) == 4:  v2s = [1.69e-5]
-    elif intOrFloat(mass) == 3:  v2s = [1.00e-4]
-    elif intOrFloat(mass) == 2:  v2s = [1.23e-3, 2.47e-4]
+    if intOrFloat(mass) == 10:   v2s = [1.26e-6, 4.35e-8]
+    elif intOrFloat(mass) == 8:  v2s = [1.32e-5, 1.73e-7]
+    elif intOrFloat(mass) == 6:  v2s = [8.98e-6, 1.03e-6, 2.73e-7]
+    elif intOrFloat(mass) == 5:  v2s = [4.30e-5, 3.17e-6, 8.47e-7]
+    elif intOrFloat(mass) == 4:  v2s = [1.04e-4, 1.26e-5, 3.37e-6]
+    elif intOrFloat(mass) == 3:  v2s = [1.97e-4, 1.97e-5]
+    elif intOrFloat(mass) == 2:  v2s = [9.48e-4, 2.47e-4, 1.90e-4]
     elif intOrFloat(mass) == 1:  v2s = [9.02e-2, 1.80e-2]
   elif flavor=='tau':
     if intOrFloat(mass) == 1:    vs  = [3.29e-1]
@@ -81,15 +81,13 @@ if couplings=='all':
     elif intOrFloat(mass) == 5:  vs  = [6.39e-3]
     elif intOrFloat(mass) == 10: vs  = [1.08e-3]
   else:
-#    if   intOrFloat(mass) == 20: v2s = [3.74e-10, 7.48e-11]
-#    elif intOrFloat(mass) == 15: v2s = [2.28e-9, 4.57e-10]
-    if intOrFloat(mass) == 10:   v2s = [5.73e-7]
-    elif intOrFloat(mass) == 8:  v2s = [2.29e-6]
-    elif intOrFloat(mass) == 6:  v2s = [4.10e-6]
-    elif intOrFloat(mass) == 5:  v2s = [2.12e-6]
-    elif intOrFloat(mass) == 4:  v2s = [8.44e-6]
-    elif intOrFloat(mass) == 3:  v2s = [5.01e-5]
-    elif intOrFloat(mass) == 2:  v2s = [6.17e-4, 1.23e-4]
+    if intOrFloat(mass) == 10:   v2s = [6.30e-7, 2.17e-8]
+    elif intOrFloat(mass) == 8:  v2s = [6.62e-6, 8.65e-8]
+    elif intOrFloat(mass) == 6:  v2s = [4.49e-6, 5.13e-7, 1.37e-7]
+    elif intOrFloat(mass) == 5:  v2s = [2.15e-5, 1.59e-6, 4.23e-7]
+    elif intOrFloat(mass) == 4:  v2s = [5.21e-5, 6.31e-6, 1.69e-6]
+    elif intOrFloat(mass) == 3:  v2s = [9.86e-5, 9.85e-6]
+    elif intOrFloat(mass) == 2:  v2s = [4.74e-4, 1.23e-4, 9.48e-5]
     elif intOrFloat(mass) == 1:  v2s = [4.51e-2, 9.02e-3]
   try:
     print vs
@@ -131,10 +129,10 @@ for coupling in couplings:
     print gridpack + ' --> fixing for Madspin bug'
     os.system('./fixGridpack.sh ' + gridpack)
     print gridpack + ' --> prompt done'
-    shutil.copyfile(gridpack, '/user/' + os.environ['USER'] + '/public/production/gridpacks2/prompt/' + gridpack)
+    shutil.copyfile(gridpack, '/user/' + os.environ['USER'] + '/public/production/gridpacks/prompt/' + gridpack)
     print gridpack + ' --> fixing for displaced'
     os.system('./fixGridpackForDisplacedLO.sh ' + gridpack)
-    shutil.move(gridpack, '/user/' + os.environ['USER'] + '/public/production/gridpacks2/displaced/' + gridpack)
+    shutil.move(gridpack, '/user/' + os.environ['USER'] + '/public/production/gridpacks/displaced/' + gridpack)
     print gridpack + ' --> displaced done'
     try:    os.remove(gridpack.split('LO')[0] + 'LO.log')
     except: pass
